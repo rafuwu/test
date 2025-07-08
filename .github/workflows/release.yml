@@ -22,13 +22,22 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
         contents: write
+    env:
+        sha: ${{ github.sha }}
+        repo: ${{ github.repository }}
     steps:
+      - name: Set dynamic variable
+        # https://graphite.dev/guides/github-actions-variables
+        run: echo "tag_name=$(date +%Y-%m-%d)_$(echo $sha | sed -E 's/^(.{7}).*$/\1/')_$(echo "$repo" | sed -E 's/\//_/')" >> $GITHUB_ENV
+      - name: Bump version and push tag
+        uses: laputansoft/github-tag-action@v4.6
+        with:
+          github_token: ${{ env.github-token }}
+          tag: ${{ env.tag_name }}
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build
         run: echo ${{ github.sha }} > Release.txt
-      - name: Test
-        run: cat Release.txt
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
